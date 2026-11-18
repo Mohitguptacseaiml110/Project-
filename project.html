@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px #0001;
+        }
+
+        .form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            width: 100%;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .total {
+            font-size: 20px;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
+        }
+
+        .delete {
+            background: #dc2626;
+        }
+
+        .delete:hover {
+            background: #b91c1c;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .form {
+                grid-template-columns: 1fr;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Student Management System</h1>
+
+    <div class="card">
+        <h2>Add Student</h2>
+        <br>
+
+        <form class="form" id="studentForm">
+
+            <input type="text" id="name"
+                placeholder="Enter Student Name" required>
+
+            <input type="number" id="roll"
+                placeholder="Enter Roll Number" required>
+
+            <input type="text" id="branch"
+                placeholder="Enter Branch" required>
+
+            <input type="number" id="marks"
+                placeholder="Enter Marks" min="0" max="100" required>
+
+            <button type="submit">Add Student</button>
+
+        </form>
+    </div>
+
+    <div class="card">
+
+        <p class="total">
+            Total Students: <span id="total">0</span>
+        </p>
+
+        <br>
+
+        <input type="text" id="search"
+            placeholder="Search Student by Name...">
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll No.</th>
+                        <th>Branch</th>
+                        <th>Marks</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="studentList"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let students = JSON.parse(
+        localStorage.getItem("students")
+    ) || [];
+
+    const form = document.getElementById("studentForm");
+    const studentList = document.getElementById("studentList");
+    const total = document.getElementById("total");
+    const search = document.getElementById("search");
+
+    function displayStudents(data = students) {
+
+        studentList.innerHTML = "";
+
+        data.forEach((student) => {
+
+            let row = document.createElement("tr");
+
+            [student.name, student.roll,
+             student.branch, student.marks].forEach(value => {
+                let cell = document.createElement("td");
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            let actionCell = document.createElement("td");
+            let deleteButton = document.createElement("button");
+
+            deleteButton.textContent = "Delete";
+            deleteButton.className = "delete";
+
+            deleteButton.onclick = function() {
+                students = students.filter(
+                    s => s.id !== student.id
+                );
+                saveData();
+            };
+
+            actionCell.appendChild(deleteButton);
+            row.appendChild(actionCell);
+
+            studentList.appendChild(row);
+
+        });
+
+        total.textContent = students.length;
+    }
+
+    function saveData() {
+        localStorage.setItem(
+            "students",
+            JSON.stringify(students)
+        );
+
+        displayStudents();
+    }
+
+    form.addEventListener("submit", function(e) {
+
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const roll = document.getElementById("roll").value.trim();
+        const branch = document.getElementById("branch").value.trim();
+        const marks = Number(document.getElementById("marks").value);
+
+        if (!name || !roll || !branch || marks < 0 || marks > 100) {
+            alert("Please enter valid student details.");
+            return;
+        }
+
+        if (students.some(s => s.roll === roll)) {
+            alert("Roll number already exists!");
+            return;
+        }
+
+        students.push({
+            id: Date.now(),
+            name,
+            roll,
+            branch,
+            marks
+        });
+
+        saveData();
+        form.reset();
+
+    });
+
+    search.addEventListener("input", function() {
+
+        const value = search.value.toLowerCase();
+
+        const filtered = students.filter(student =>
+            student.name.toLowerCase().includes(value)
+        );
+
+        displayStudents(filtered);
+
+    });
+
+    displayStudents();
+
+</script>
+
+</body>
+</html>
